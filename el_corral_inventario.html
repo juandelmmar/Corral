@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Corral — Gestión de Inventario</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rojo: #D32F2F;
+    --rojo-oscuro: #B71C1C;
+    --rojo-claro: #FF5252;
+    --amarillo: #FFC107;
+    --amarillo-claro: #FFD54F;
+    --negro: #1A1A1A;
+    --gris-oscuro: #2C2C2C;
+    --gris-medio: #3D3D3D;
+    --gris-claro: #5A5A5A;
+    --fondo: #141414;
+    --tarjeta: #1E1E1E;
+    --tarjeta-hover: #252525;
+    --borde: #333;
+    --texto: #F0F0F0;
+    --texto-secundario: #999;
+    --verde: #4CAF50;
+    --verde-claro: #66BB6A;
+    --naranja: #FF9800;
+    --peligro: #FF5252;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Montserrat', sans-serif;
+    background: var(--fondo);
+    color: var(--texto);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--negro);
+    border-bottom: 3px solid var(--rojo);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 68px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo-icono {
+    width: 42px;
+    height: 42px;
+    background: var(--rojo);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+  }
+
+  .logo-texto h1 {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 26px;
+    letter-spacing: 2px;
+    color: #fff;
+    line-height: 1;
+  }
+
+  .logo-texto span {
+    font-size: 10px;
+    color: var(--amarillo);
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .badge-alertas {
+    background: var(--rojo);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .badge-alertas:hover { background: var(--rojo-oscuro); }
+
+  .badge-num {
+    background: var(--amarillo);
+    color: var(--negro);
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 900;
+  }
+
+  .btn-agregar {
+    background: var(--rojo);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.2s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-agregar:hover { background: var(--rojo-oscuro); transform: translateY(-1px); }
+  .btn-agregar:active { transform: translateY(0); }
+
+  /* ALERTAS BANNER */
+  #alertas-banner {
+    background: linear-gradient(135deg, #1a0a0a, #2a0d0d);
+    border-bottom: 2px solid var(--rojo);
+    padding: 12px 32px;
+    display: none;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  #alertas-banner.visible { display: flex; }
+
+  .alerta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(211,47,47,0.15);
+    border: 1px solid rgba(211,47,47,0.4);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #ffaaaa;
+  }
+
+  .alerta-item.caducidad {
+    background: rgba(255,152,0,0.12);
+    border-color: rgba(255,152,0,0.4);
+    color: #ffd080;
+  }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--borde);
+    border-bottom: 1px solid var(--borde);
+  }
+
+  .stat-item {
+    background: var(--tarjeta);
+    padding: 18px 24px;
+    text-align: center;
+  }
+
+  .stat-numero {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 36px;
+    line-height: 1;
+    color: var(--amarillo);
+  }
+
+  .stat-numero.rojo { color: var(--rojo-claro); }
+  .stat-numero.naranja { color: var(--naranja); }
+  .stat-numero.verde { color: var(--verde-claro); }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--texto-secundario);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  /* MAIN LAYOUT */
+  main {
+    padding: 28px 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* FILTROS */
+  .filtros {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filtro-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1.5px solid var(--borde);
+    background: transparent;
+    color: var(--texto-secundario);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .filtro-btn:hover { border-color: var(--rojo); color: var(--texto); }
+  .filtro-btn.activo { background: var(--rojo); border-color: var(--rojo); color: #fff; }
+
+  .buscador {
+    margin-left: auto;
+    position: relative;
+  }
+
+  .buscador input {
+    background: var(--tarjeta);
+    border: 1.5px solid var(--borde);
+    color: var(--texto);
+    padding: 8px 14px 8px 36px;
+    border-radius: 6px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    width: 220px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .buscador input:focus { border-color: var(--rojo); }
+  .buscador input::placeholder { color: var(--texto-secundario); }
+
+  .buscador::before {
+    content: '🔍';
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+  }
+
+  /* TABLA */
+  .tabla-container {
+    background: var(--tarjeta);
+    border-radius: 12px;
+    border: 1px solid var(--borde);
+    overflow: hidden;
+  }
+
+  .tabla-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 120px;
+    background: var(--gris-oscuro);
+    padding: 12px 20px;
+    gap: 12px;
+    border-bottom: 2px solid var(--rojo);
+  }
+
+  .tabla-header span {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--texto-secundario);
+  }
+
+  .fila-producto {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 120px;
+    padding: 14px 20px;
+    gap: 12px;
+    border-bottom: 1px solid var(--borde);
+    align-items: center;
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+
+  .fila-producto:last-child { border-bottom: none; }
+  .fila-producto:hover { background: var(--tarjeta-hover); }
+
+  .fila-producto.alerta-stock { border-left: 3px solid var(--rojo-claro); }
+  .fila-producto.alerta-caducidad { border-left: 3px solid var(--naranja); }
+  .fila-producto.critico { border-left: 3px solid var(--rojo-claro); background: rgba(211,47,47,0.04); }
+
+  .prod-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .prod-emoji {
+    width: 38px;
+    height: 38px;
+    background: var(--gris-oscuro);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .prod-nombre {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--texto);
+    line-height: 1.2;
+  }
+
+  .prod-categoria {
+    font-size: 11px;
+    color: var(--texto-secundario);
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  .celda {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--texto);
+  }
+
+  .celda.secundario {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--texto-secundario);
+  }
+
+  .cantidad-display {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .cantidad-num {
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .cantidad-num.bajo { color: var(--rojo-claro); }
+  .cantidad-num.medio { color: var(--naranja); }
+  .cantidad-num.ok { color: var(--verde-claro); }
+
+  .barra-stock {
+    height: 4px;
+    background: var(--borde);
+    border-radius: 2px;
+    overflow: hidden;
+    width: 70px;
+  }
+
+  .barra-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s;
+  }
+
+  .barra-fill.bajo { background: var(--rojo-claro); }
+  .barra-fill.medio { background: var(--naranja); }
+  .barra-fill.ok { background: var(--verde-claro); }
+
+  .tag-estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .tag-ok { background: rgba(76,175,80,0.15); color: var(--verde-claro); }
+  .tag-bajo { background: rgba(255,82,82,0.15); color: var(--rojo-claro); }
+  .tag-medio { background: rgba(255,152,0,0.15); color: var(--naranja); }
+  .tag-vence { background: rgba(255,152,0,0.15); color: var(--naranja); }
+  .tag-vencido { background: rgba(211,47,47,0.2); color: var(--rojo-claro); }
+
+  .fecha-cad {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .fecha-cad.urgente { color: var(--rojo-claro); }
+  .fecha-cad.pronto { color: var(--naranja); }
+  .fecha-cad.ok { color: var(--texto-secundario); }
+
+  .acciones {
+    display: flex;
+    gap: 6px;
+  }
+
+  .btn-editar, .btn-eliminar {
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.15s;
+  }
+
+  .btn-editar {
+    background: rgba(255,193,7,0.15);
+    color: var(--amarillo);
+  }
+  .btn-editar:hover { background: rgba(255,193,7,0.3); }
+
+  .btn-eliminar {
+    background: rgba(211,47,47,0.15);
+    color: var(--rojo-claro);
+  }
+  .btn-eliminar:hover { background: rgba(211,47,47,0.3); }
+
+  /* EMPTY */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--texto-secundario);
+    display: none;
+  }
+  .empty-state.visible { display: block; }
+  .empty-state h3 { font-size: 20px; color: var(--texto); margin-bottom: 8px; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.abierto {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--gris-oscuro);
+    border: 1px solid var(--borde);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 520px;
+    padding: 32px;
+    transform: translateY(20px) scale(0.97);
+    transition: transform 0.25s;
+    position: relative;
+  }
+
+  .modal-overlay.abierto .modal {
+    transform: translateY(0) scale(1);
+  }
+
+  .modal-titulo {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+
+  .modal-subtitulo {
+    font-size: 12px;
+    color: var(--texto-secundario);
+    margin-bottom: 24px;
+    font-weight: 500;
+  }
+
+  .modal-cerrar {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: var(--gris-medio);
+    border: none;
+    color: var(--texto-secundario);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.15s;
+  }
+  .modal-cerrar:hover { background: var(--rojo); color: #fff; }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .form-grid .full { grid-column: 1 / -1; }
+
+  .campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .campo label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--texto-secundario);
+  }
+
+  .campo input, .campo select {
+    background: var(--negro);
+    border: 1.5px solid var(--borde);
+    color: var(--texto);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  .campo input:focus, .campo select:focus { border-color: var(--rojo); }
+  .campo select option { background: var(--negro); }
+
+  .modal-footer {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    justify-content: flex-end;
+  }
+
+  .btn-cancelar {
+    background: var(--gris-medio);
+    color: var(--texto-secundario);
+    border: none;
+    padding: 11px 20px;
+    border-radius: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-cancelar:hover { background: var(--gris-claro); color: var(--texto); }
+
+  .btn-guardar {
+    background: var(--rojo);
+    color: #fff;
+    border: none;
+    padding: 11px 24px;
+    border-radius: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s;
+    letter-spacing: 0.5px;
+  }
+  .btn-guardar:hover { background: var(--rojo-oscuro); }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background: var(--gris-oscuro);
+    border: 1px solid var(--borde);
+    border-left: 4px solid var(--verde);
+    border-radius: 10px;
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--texto);
+    z-index: 2000;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: transform 0.3s, opacity 0.3s;
+    max-width: 300px;
+  }
+
+  .toast.visible {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .toast.error { border-left-color: var(--rojo-claro); }
+
+  /* Sección título */
+  .seccion-titulo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .seccion-titulo h2 {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 22px;
+    letter-spacing: 1.5px;
+    color: var(--texto);
+  }
+
+  .linea-titulo {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--borde), transparent);
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    main { padding: 20px 16px; }
+    header { padding: 0 16px; }
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    .tabla-header { display: none; }
+    .fila-producto { grid-template-columns: 1fr; padding: 16px; gap: 8px; }
+    .filtros { gap: 8px; }
+    .buscador { margin-left: 0; width: 100%; }
+    .buscador input { width: 100%; }
+    #alertas-banner { padding: 12px 16px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-grid .full { grid-column: 1; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icono">🐄</div>
+    <div class="logo-texto">
+      <h1>El Corral</h1>
+      <span>Panel de Inventario</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="badge-alertas" onclick="toggleAlertas()" id="badge-alertas">
+      ⚠️ Alertas
+      <div class="badge-num" id="conteo-alertas">0</div>
+    </div>
+    <button class="btn-agregar" onclick="abrirModal()">
+      + Agregar Insumo
+    </button>
+  </div>
+</header>
+
+<!-- Banner de alertas -->
+<div id="alertas-banner">
+  <span style="font-size:12px;font-weight:700;color:var(--texto-secundario);margin-right:4px;letter-spacing:1px;text-transform:uppercase;">Alertas activas:</span>
+  <div id="lista-alertas" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+</div>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="stat-numero" id="stat-total">0</div>
+    <div class="stat-label">Total Insumos</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-numero rojo" id="stat-stock-bajo">0</div>
+    <div class="stat-label">Stock Bajo</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-numero naranja" id="stat-por-vencer">0</div>
+    <div class="stat-label">Por Vencer (7 días)</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-numero verde" id="stat-ok">0</div>
+    <div class="stat-label">En Buen Estado</div>
+  </div>
+</div>
+
+<main>
+  <div class="seccion-titulo">
+    <h2>Inventario de Insumos</h2>
+    <div class="linea-titulo"></div>
+  </div>
+
+  <div class="filtros">
+    <button class="filtro-btn activo" onclick="filtrar('todos', this)">Todos</button>
+    <button class="filtro-btn" onclick="filtrar('Carnes', this)">🥩 Carnes</button>
+    <button class="filtro-btn" onclick="filtrar('Panes', this)">🍞 Panes</button>
+    <button class="filtro-btn" onclick="filtrar('Salsas y Aderezos', this)">🫙 Salsas</button>
+    <button class="filtro-btn" onclick="filtrar('Papas y Acompañamientos', this)">🍟 Acompañamientos</button>
+    <button class="filtro-btn" onclick="filtrar('Bebidas', this)">🥤 Bebidas</button>
+    <button class="filtro-btn" onclick="filtrar('Lácteos', this)">🧀 Lácteos</button>
+    <button class="filtro-btn" onclick="filtrar('Verduras y Frescos', this)">🥬 Frescos</button>
+    <button class="filtro-btn" onclick="filtrar('Postres e Helados', this)">🍦 Postres</button>
+    <button class="filtro-btn" onclick="filtrar('alertas', this)" style="border-color:var(--rojo);color:var(--rojo-claro);">⚠️ Solo Alertas</button>
+    <div class="buscador">
+      <input type="text" id="buscador" placeholder="Buscar insumo..." oninput="buscar(this.value)">
+    </div>
+  </div>
+
+  <div class="tabla-container">
+    <div class="tabla-header">
+      <span>Producto</span>
+      <span>Categoría</span>
+      <span>Stock Actual</span>
+      <span>Stock Mínimo</span>
+      <span>Vencimiento</span>
+      <span>Estado</span>
+      <span>Acciones</span>
+    </div>
+    <div id="tabla-body"></div>
+    <div class="empty-state" id="empty-state">
+      <div style="font-size:48px;margin-bottom:12px">📦</div>
+      <h3>No hay insumos aquí</h3>
+      <p>Agrega un nuevo insumo o cambia los filtros.</p>
+    </div>
+  </div>
+</main>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="cerrarModalFondo(event)">
+  <div class="modal">
+    <div class="modal-titulo" id="modal-titulo">Nuevo Insumo</div>
+    <div class="modal-subtitulo">Completa la información del insumo</div>
+    <button class="modal-cerrar" onclick="cerrarModal()">✕</button>
+
+    <div class="form-grid">
+      <div class="campo full">
+        <label>Nombre del insumo</label>
+        <input type="text" id="f-nombre" placeholder="Ej: Carne de res molida 80/20">
+      </div>
+      <div class="campo">
+        <label>Categoría</label>
+        <select id="f-categoria">
+          <option value="Carnes">🥩 Carnes</option>
+          <option value="Panes">🍞 Panes</option>
+          <option value="Salsas y Aderezos">🫙 Salsas y Aderezos</option>
+          <option value="Papas y Acompañamientos">🍟 Papas y Acompañamientos</option>
+          <option value="Bebidas">🥤 Bebidas</option>
+          <option value="Lácteos">🧀 Lácteos</option>
+          <option value="Verduras y Frescos">🥬 Verduras y Frescos</option>
+          <option value="Postres e Helados">🍦 Postres e Helados</option>
+          <option value="Empaque y Desechables">📦 Empaque y Desechables</option>
+          <option value="Otros">📋 Otros</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label>Unidad de medida</label>
+        <select id="f-unidad">
+          <option value="kg">Kilogramos (kg)</option>
+          <option value="g">Gramos (g)</option>
+          <option value="L">Litros (L)</option>
+          <option value="ml">Mililitros (ml)</option>
+          <option value="und">Unidades (und)</option>
+          <option value="porciones">Porciones</option>
+          <option value="cajas">Cajas</option>
+          <option value="bolsas">Bolsas</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label>Stock Actual</label>
+        <input type="number" id="f-stock" placeholder="0" min="0" step="0.1">
+      </div>
+      <div class="campo">
+        <label>Stock Mínimo (alerta)</label>
+        <input type="number" id="f-minimo" placeholder="0" min="0" step="0.1">
+      </div>
+      <div class="campo full">
+        <label>Fecha de Vencimiento (opcional)</label>
+        <input type="date" id="f-vencimiento">
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-guardar" onclick="guardarInsumo()">Guardar Insumo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const EMOJIS = {
+  'Carnes': '🥩',
+  'Panes': '🍞',
+  'Salsas y Aderezos': '🫙',
+  'Papas y Acompañamientos': '🍟',
+  'Bebidas': '🥤',
+  'Lácteos': '🧀',
+  'Verduras y Frescos': '🥬',
+  'Postres e Helados': '🍦',
+  'Empaque y Desechables': '📦',
+  'Otros': '📋'
+};
+
+// Inventario inicial con productos reales de El Corral
+let inventario = [
+  { id: 1, nombre: 'Carne de res molida 80/20', categoria: 'Carnes', stock: 12, minimo: 25, unidad: 'kg', vencimiento: diasDesdeHoy(3) },
+  { id: 2, nombre: 'Pechuga de pollo', categoria: 'Carnes', stock: 8, minimo: 15, unidad: 'kg', vencimiento: diasDesdeHoy(2) },
+  { id: 3, nombre: 'Tocineta ahumada', categoria: 'Carnes', stock: 4, minimo: 10, unidad: 'kg', vencimiento: diasDesdeHoy(5) },
+  { id: 4, nombre: 'Pan de hamburguesa redondo', categoria: 'Panes', stock: 150, minimo: 200, unidad: 'und', vencimiento: diasDesdeHoy(4) },
+  { id: 5, nombre: 'Pan Vaquero (alargado)', categoria: 'Panes', stock: 80, minimo: 100, unidad: 'und', vencimiento: diasDesdeHoy(4) },
+  { id: 6, nombre: 'Pan de mini-burger (Corralito)', categoria: 'Panes', stock: 60, minimo: 80, unidad: 'und', vencimiento: diasDesdeHoy(3) },
+  { id: 7, nombre: 'Salsa de tomate El Corral', categoria: 'Salsas y Aderezos', stock: 18, minimo: 10, unidad: 'kg', vencimiento: diasDesdeHoy(45) },
+  { id: 8, nombre: 'Mostaza amarilla', categoria: 'Salsas y Aderezos', stock: 6, minimo: 8, unidad: 'kg', vencimiento: diasDesdeHoy(60) },
+  { id: 9, nombre: 'Mayonesa', categoria: 'Salsas y Aderezos', stock: 14, minimo: 10, unidad: 'kg', vencimiento: diasDesdeHoy(30) },
+  { id: 10, nombre: 'Papas prefritas congeladas', categoria: 'Papas y Acompañamientos', stock: 60, minimo: 40, unidad: 'kg', vencimiento: diasDesdeHoy(90) },
+  { id: 11, nombre: 'Mazorca precocida', categoria: 'Papas y Acompañamientos', stock: 30, minimo: 40, unidad: 'und', vencimiento: diasDesdeHoy(6) },
+  { id: 12, nombre: 'Coca-Cola lata 330ml', categoria: 'Bebidas', stock: 180, minimo: 100, unidad: 'und', vencimiento: diasDesdeHoy(180) },
+  { id: 13, nombre: 'Agua Cristal 600ml', categoria: 'Bebidas', stock: 40, minimo: 60, unidad: 'und', vencimiento: diasDesdeHoy(365) },
+  { id: 14, nombre: 'Refajo Colombiano', categoria: 'Bebidas', stock: 24, minimo: 30, unidad: 'und', vencimiento: diasDesdeHoy(120) },
+  { id: 15, nombre: 'Queso americano (láminas)', categoria: 'Lácteos', stock: 200, minimo: 150, unidad: 'und', vencimiento: diasDesdeHoy(10) },
+  { id: 16, nombre: 'Queso mozzarella', categoria: 'Lácteos', stock: 5, minimo: 10, unidad: 'kg', vencimiento: diasDesdeHoy(7) },
+  { id: 17, nombre: 'Leche entera', categoria: 'Lácteos', stock: 20, minimo: 15, unidad: 'L', vencimiento: diasDesdeHoy(5) },
+  { id: 18, nombre: 'Helado de vainilla', categoria: 'Postres e Helados', stock: 12, minimo: 8, unidad: 'L', vencimiento: diasDesdeHoy(60) },
+  { id: 19, nombre: 'Lechuga iceberg', categoria: 'Verduras y Frescos', stock: 3, minimo: 8, unidad: 'kg', vencimiento: diasDesdeHoy(2) },
+  { id: 20, nombre: 'Tomate chonto', categoria: 'Verduras y Frescos', stock: 5, minimo: 6, unidad: 'kg', vencimiento: diasDesdeHoy(3) },
+  { id: 21, nombre: 'Cebolla cabezona blanca', categoria: 'Verduras y Frescos', stock: 8, minimo: 5, unidad: 'kg', vencimiento: diasDesdeHoy(14) },
+  { id: 22, nombre: 'Vasos desechables 16oz', categoria: 'Empaque y Desechables', stock: 400, minimo: 200, unidad: 'und', vencimiento: null },
+  { id: 23, nombre: 'Cajas de cartón burger', categoria: 'Empaque y Desechables', stock: 80, minimo: 150, unidad: 'und', vencimiento: null },
+];
+
+let idCounter = inventario.length + 1;
+let filtroActual = 'todos';
+let busquedaActual = '';
+let editandoId = null;
+
+function diasDesdeHoy(dias) {
+  const d = new Date();
+  d.setDate(d.getDate() + dias);
+  return d.toISOString().split('T')[0];
+}
+
+function getEstadoStock(item) {
+  const pct = item.stock / item.minimo;
+  if (item.stock === 0) return 'critico';
+  if (pct < 0.5) return 'bajo';
+  if (pct < 1) return 'medio';
+  return 'ok';
+}
+
+function getEstadoCaducidad(vencimiento) {
+  if (!vencimiento) return null;
+  const hoy = new Date();
+  hoy.setHours(0,0,0,0);
+  const vence = new Date(vencimiento);
+  const diff = Math.round((vence - hoy) / (1000 * 60 * 60 * 24));
+  if (diff < 0) return 'vencido';
+  if (diff <= 3) return 'urgente';
+  if (diff <= 7) return 'pronto';
+  return 'ok';
+}
+
+function formatFecha(fecha) {
+  if (!fecha) return '—';
+  const [y, m, d] = fecha.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function diasRestantes(fecha) {
+  if (!fecha) return null;
+  const hoy = new Date();
+  hoy.setHours(0,0,0,0);
+  const vence = new Date(fecha);
+  return Math.round((vence - hoy) / (1000 * 60 * 60 * 24));
+}
+
+function renderTabla() {
+  const body = document.getElementById('tabla-body');
+  let datos = inventario;
+
+  if (filtroActual === 'alertas') {
+    datos = datos.filter(i => {
+      const es = getEstadoStock(i);
+      const ec = getEstadoCaducidad(i.vencimiento);
+      return es !== 'ok' || (ec && ec !== 'ok');
+    });
+  } else if (filtroActual !== 'todos') {
+    datos = datos.filter(i => i.categoria === filtroActual);
+  }
+
+  if (busquedaActual) {
+    const q = busquedaActual.toLowerCase();
+    datos = datos.filter(i => i.nombre.toLowerCase().includes(q) || i.categoria.toLowerCase().includes(q));
+  }
+
+  const empty = document.getElementById('empty-state');
+  if (datos.length === 0) { empty.classList.add('visible'); body.innerHTML = ''; actualizarStats(); return; }
+  empty.classList.remove('visible');
+
+  body.innerHTML = datos.map(item => {
+    const es = getEstadoStock(item);
+    const ec = getEstadoCaducidad(item.vencimiento);
+    const pct = Math.min(100, (item.stock / (item.minimo * 2)) * 100);
+    const dr = diasRestantes(item.vencimiento);
+
+    let claseRow = '';
+    if (es === 'critico' || es === 'bajo') claseRow = 'critico';
+    else if (ec === 'urgente' || ec === 'vencido') claseRow = 'alerta-caducidad';
+
+    let tagStock = '';
+    if (es === 'ok') tagStock = `<span class="tag-estado tag-ok">✓ OK</span>`;
+    else if (es === 'medio') tagStock = `<span class="tag-estado tag-medio">⚠ Medio</span>`;
+    else tagStock = `<span class="tag-estado tag-bajo">⚠ Bajo</span>`;
+
+    let tagCad = '';
+    if (ec === 'vencido') tagCad = `<span class="tag-estado tag-vencido">✕ Vencido</span>`;
+    else if (ec === 'urgente') tagCad = `<span class="tag-estado tag-vence">🔥 ${dr}d</span>`;
+    else if (ec === 'pronto') tagCad = `<span class="tag-estado tag-vence">⏰ ${dr}d</span>`;
+
+    return `
+    <div class="fila-producto ${claseRow}" onclick="abrirEdicion(${item.id})">
+      <div class="prod-info">
+        <div class="prod-emoji">${EMOJIS[item.categoria] || '📋'}</div>
+        <div>
+          <div class="prod-nombre">${item.nombre}</div>
+          <div class="prod-categoria">${item.categoria}</div>
+        </div>
+      </div>
+      <div class="celda secundario">${item.categoria}</div>
+      <div class="cantidad-display">
+        <span class="cantidad-num ${es}">${item.stock} ${item.unidad}</span>
+        <div class="barra-stock"><div class="barra-fill ${es}" style="width:${pct}%"></div></div>
+      </div>
+      <div class="celda secundario">${item.minimo} ${item.unidad}</div>
+      <div>
+        <div class="fecha-cad ${ec === 'urgente' || ec === 'vencido' ? 'urgente' : ec === 'pronto' ? 'pronto' : 'ok'}">${formatFecha(item.vencimiento)}</div>
+        ${tagCad}
+      </div>
+      <div>${tagStock}</div>
+      <div class="acciones" onclick="event.stopPropagation()">
+        <button class="btn-editar" onclick="abrirEdicion(${item.id})" title="Editar">✏️</button>
+        <button class="btn-eliminar" onclick="eliminarItem(${item.id})" title="Eliminar">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  actualizarStats();
+  actualizarAlertas();
+}
+
+function actualizarStats() {
+  const total = inventario.length;
+  const bajo = inventario.filter(i => getEstadoStock(i) !== 'ok').length;
+  const vencen = inventario.filter(i => {
+    const ec = getEstadoCaducidad(i.vencimiento);
+    return ec === 'urgente' || ec === 'pronto';
+  }).length;
+  const ok = inventario.filter(i => {
+    const es = getEstadoStock(i);
+    const ec = getEstadoCaducidad(i.vencimiento);
+    return es === 'ok' && (!ec || ec === 'ok');
+  }).length;
+
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-stock-bajo').textContent = bajo;
+  document.getElementById('stat-por-vencer').textContent = vencen;
+  document.getElementById('stat-ok').textContent = ok;
+
+  const total_alertas = bajo + vencen;
+  document.getElementById('conteo-alertas').textContent = total_alertas;
+}
+
+function actualizarAlertas() {
+  const lista = document.getElementById('lista-alertas');
+  const banner = document.getElementById('alertas-banner');
+  const alertas = [];
+
+  inventario.forEach(item => {
+    const es = getEstadoStock(item);
+    const ec = getEstadoCaducidad(item.vencimiento);
+    if (es !== 'ok') alertas.push({ texto: `${item.nombre} — Stock bajo (${item.stock} ${item.unidad})`, tipo: 'stock' });
+    if (ec === 'urgente') alertas.push({ texto: `${item.nombre} — Vence en ${diasRestantes(item.vencimiento)} días`, tipo: 'caducidad' });
+    if (ec === 'vencido') alertas.push({ texto: `${item.nombre} — ¡VENCIDO!`, tipo: 'caducidad' });
+  });
+
+  if (alertas.length > 0) {
+    lista.innerHTML = alertas.slice(0, 6).map(a =>
+      `<div class="alerta-item ${a.tipo === 'caducidad' ? 'caducidad' : ''}">${a.tipo === 'caducidad' ? '📅' : '📦'} ${a.texto}</div>`
+    ).join('');
+    if (banner._abierto) banner.classList.add('visible');
+  } else {
+    banner.classList.remove('visible');
+  }
+}
+
+function toggleAlertas() {
+  const banner = document.getElementById('alertas-banner');
+  banner._abierto = !banner._abierto;
+  if (banner._abierto) banner.classList.add('visible');
+  else banner.classList.remove('visible');
+}
+
+function filtrar(cat, btn) {
+  filtroActual = cat;
+  document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
+  btn.classList.add('activo');
+  renderTabla();
+}
+
+function buscar(val) {
+  busquedaActual = val;
+  renderTabla();
+}
+
+function abrirModal() {
+  editandoId = null;
+  document.getElementById('modal-titulo').textContent = 'Nuevo Insumo';
+  document.getElementById('modal-subtitulo') && (document.querySelector('.modal-subtitulo').textContent = 'Completa la información del insumo');
+  document.getElementById('f-nombre').value = '';
+  document.getElementById('f-categoria').value = 'Carnes';
+  document.getElementById('f-unidad').value = 'kg';
+  document.getElementById('f-stock').value = '';
+  document.getElementById('f-minimo').value = '';
+  document.getElementById('f-vencimiento').value = '';
+  document.getElementById('modal-overlay').classList.add('abierto');
+}
+
+function abrirEdicion(id) {
+  const item = inventario.find(i => i.id === id);
+  if (!item) return;
+  editandoId = id;
+  document.getElementById('modal-titulo').textContent = 'Editar Insumo';
+  document.getElementById('f-nombre').value = item.nombre;
+  document.getElementById('f-categoria').value = item.categoria;
+  document.getElementById('f-unidad').value = item.unidad;
+  document.getElementById('f-stock').value = item.stock;
+  document.getElementById('f-minimo').value = item.minimo;
+  document.getElementById('f-vencimiento').value = item.vencimiento || '';
+  document.getElementById('modal-overlay').classList.add('abierto');
+}
+
+function cerrarModal() {
+  document.getElementById('modal-overlay').classList.remove('abierto');
+}
+
+function cerrarModalFondo(e) {
+  if (e.target === document.getElementById('modal-overlay')) cerrarModal();
+}
+
+function guardarInsumo() {
+  const nombre = document.getElementById('f-nombre').value.trim();
+  const categoria = document.getElementById('f-categoria').value;
+  const unidad = document.getElementById('f-unidad').value;
+  const stock = parseFloat(document.getElementById('f-stock').value);
+  const minimo = parseFloat(document.getElementById('f-minimo').value);
+  const vencimiento = document.getElementById('f-vencimiento').value || null;
+
+  if (!nombre) { mostrarToast('⚠️ Ingresa el nombre del insumo', true); return; }
+  if (isNaN(stock) || stock < 0) { mostrarToast('⚠️ Ingresa un stock válido', true); return; }
+  if (isNaN(minimo) || minimo < 0) { mostrarToast('⚠️ Ingresa un stock mínimo válido', true); return; }
+
+  if (editandoId) {
+    const idx = inventario.findIndex(i => i.id === editandoId);
+    inventario[idx] = { ...inventario[idx], nombre, categoria, unidad, stock, minimo, vencimiento };
+    mostrarToast('✅ Insumo actualizado correctamente');
+  } else {
+    inventario.push({ id: idCounter++, nombre, categoria, unidad, stock, minimo, vencimiento });
+    mostrarToast('✅ Insumo agregado correctamente');
+  }
+
+  cerrarModal();
+  renderTabla();
+}
+
+function eliminarItem(id) {
+  const item = inventario.find(i => i.id === id);
+  if (!item) return;
+  if (!confirm(`¿Eliminar "${item.nombre}" del inventario?`)) return;
+  inventario = inventario.filter(i => i.id !== id);
+  mostrarToast('🗑️ Insumo eliminado');
+  renderTabla();
+}
+
+function mostrarToast(msg, error = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (error ? ' error' : '');
+  setTimeout(() => t.classList.add('visible'), 10);
+  setTimeout(() => t.classList.remove('visible'), 3000);
+}
+
+// Init
+renderTabla();
+// Auto-mostrar alertas al cargar si hay alguna
+setTimeout(() => {
+  const alertas = inventario.filter(i => getEstadoStock(i) !== 'ok' || (getEstadoCaducidad(i.vencimiento) && getEstadoCaducidad(i.vencimiento) !== 'ok'));
+  if (alertas.length > 0) {
+    const banner = document.getElementById('alertas-banner');
+    banner._abierto = true;
+    banner.classList.add('visible');
+  }
+}, 300);
+</script>
+</body>
+</html>
